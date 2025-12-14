@@ -1,28 +1,56 @@
-const tg = window.Telegram.WebApp;
+const tg = Telegram.WebApp;
 tg.expand();
 
+
+// 🌐 IP info
 async function loadIP() {
-  document.getElementById("ip").innerText = "Loading...";
-  document.getElementById("country").innerText = "Loading...";
-  document.getElementById("isp").innerText = "Loading...";
+const res = await fetch("https://ipapi.co/json/");
+const d = await res.json();
 
-  try {
-    const res = await fetch("https://ipapi.co/json/");
-    const data = await res.json();
 
-    document.getElementById("ip").innerText = data.ip;
-    document.getElementById("country").innerText =
-      `${data.country_name} (${data.country_code})`;
-    document.getElementById("isp").innerText = data.org;
+document.getElementById("ip").innerText = d.ip;
+document.getElementById("isp").innerText = d.org;
+document.getElementById("country").innerText = `${d.country_name} (${d.country_code})`;
+document.getElementById("city").innerText = d.city;
+document.getElementById("timezone").innerText = d.timezone;
 
-  } catch (err) {
-    document.getElementById("ip").innerText = "Error";
-    document.getElementById("country").innerText = "Error";
-    document.getElementById("isp").innerText = "Error";
-  }
+
+window.collected = { ip: d.ip, country: d.country_name, city: d.city };
 }
 
-document.getElementById("refresh").onclick = loadIP;
 
-// Load on start
+// 📱 Telegram info
+const user = tg.initDataUnsafe?.user;
+document.getElementById("tg-platform").innerText = tg.platform;
+document.getElementById("tg-lang").innerText = user?.language_code || "unknown";
+document.getElementById("tg-dark").innerText = tg.colorScheme;
+document.getElementById("tg-user").innerText = user?.username || "—";
+document.getElementById("tg-premium").innerText = user?.is_premium ? "Yes" : "No";
+
+
+// 🖥 Device info
+const ua = navigator.userAgent;
+document.getElementById("device").innerText = /Mobi/.test(ua) ? "Mobile" : "Desktop";
+document.getElementById("os").innerText = navigator.platform;
+document.getElementById("browser").innerText = ua;
+document.getElementById("screen").innerText = `${screen.width} x ${screen.height}`;
+document.getElementById("pixel").innerText = window.devicePixelRatio;
+
+
+// 🌍 Environment
+document.getElementById("time").innerText = new Date().toLocaleString();
+document.getElementById("lang").innerText = navigator.language;
+document.getElementById("net").innerText = navigator.connection?.effectiveType || "unknown";
+
+
+// 📤 Send to bot
+document.getElementById("send").onclick = () => {
+tg.sendData(JSON.stringify({
+ip: document.getElementById("ip").innerText,
+platform: tg.platform,
+device: document.getElementById("device").innerText
+}));
+};
+
+
 loadIP();
